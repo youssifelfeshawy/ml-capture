@@ -9,39 +9,32 @@ encoders = joblib.load('/app/label_encoders.pkl')  # Dict of LabelEncoders
 scaler = joblib.load('/app/minmax_scaler.pkl')  # MinMaxScaler
 le_attack = joblib.load('/app/attack_label_encoder.pkl')  # LabelEncoder for attacks
 final_columns = joblib.load('/app/feature_columns.pkl')  # List of expected features
-model_stage1 = joblib.load('/app/model_stage1.pkl')  # Assume scikit-learn model (e.g., RandomForestClassifier)
-model_stage2 = joblib.load('/app/model_stage2.pkl')  # Assume scikit-learn model (e.g., RandomForestClassifier)
+
+# Load ONNX models
+sess_stage1 = ort.InferenceSession('/app/model_stage1.onnx')
+sess_stage2 = ort.InferenceSession('/app/model_stage2.onnx')
+
+# Get input names (from ONNX)
+input_name_stage1 = sess_stage1.get_inputs()[0].name
+input_name_stage2 = sess_stage2.get_inputs()[0].name
 
 # Directory to monitor
 capture_dir = '/tmp/captures'
 
-# Hybrid prediction function (adapted without TensorFlow, assuming scikit-learn models)
-def hybrid_predict(new_data, model_stage1, model_stage2, le_attack):
-    """
-    Hybrid prediction function using the two-stage model (scikit-learn compatible).
-
-    Parameters:
-    - new_data: pd.DataFrame, preprocessed input data (same features as X, without labels)
-    - model_stage1: Trained scikit-learn model for binary classification
-    - model_stage2: Trained scikit-learn model for multi-class attack classification
-    - le_attack: Fitted LabelEncoder for attack categories
-
-    Returns:
-    - list of str: Predicted labels ('Normal' or specific attack type)
-    """
-    # Stage 1: Predict binary (Normal vs. Attack)
-    pred_binary = model_stage1.predict(new_data)
-
+# Hybrid prediction (ONNX version)
+def hybrid_predict(new_data, sess_stage1, sess_stage2, le_attack, input_name_stage1, input_name_stage2):
     results = []
-    for i, is_attack in enumerate(pred_binary):
-        if is_attack == 0:
+    for i in range(len(new_data)):
+        row_data = new_data.iloc[[i]].values.astype(np.float32)  # ONNX expects float32
+        # Stage 1: Binary
+        pred_binary = sess_stage1.run(None, {input_name_stage1: row_data})[0] > 0.5
+        if not pred_binary:
             results.append('Normal')
         else:
-            # Stage 2: Predict attack type
-            pred_multi = model_stage2.predict(new_data.iloc[[i]])[0]
+            # Stage 2: Multi-class
+            pred_multi = np.argmax(sess_stage2.run(None, {input_name_stage2: row_data})[0])
             attack_type = le_attack.inverse_transform([pred_multi])[0]
             results.append(attack_type)
-
     return results
 
 # Main loop to monitor and process CSVs
