@@ -1,4 +1,5 @@
 from scapy.all import *
+from scapy.interfaces import get_if_list, IFACES
 import csv
 from collections import defaultdict
 import math
@@ -14,7 +15,7 @@ parser.add_argument(
     "--iface",
     type=str,
     default="eth0",
-    help="Network interface to capture on (default: eth0)",
+    help="Network interface to capture on (default: eth0). Use 'all' to capture on all interfaces.",
 )
 parser.add_argument(
     "--timeout", type=int, default=60, help="Capture timeout in seconds (default: 60)"
@@ -29,6 +30,12 @@ args = parser.parse_args()
 
 output_csv = args.output
 
+# Determine interface(s)
+if args.iface == 'all':
+    all_ifaces = get_if_list()
+    iface = [ifname for ifname in all_ifaces if IFACES.dev_from_name(ifname).flags & 1]
+else:
+    iface = args.iface
 
 # Function to get flow key and direction
 def get_flow_key(pkt):
@@ -67,8 +74,8 @@ def get_flow_key(pkt):
 
 
 # Capture live packets
-print(f"Capturing live traffic on interface: {args.iface} for {args.timeout} seconds")
-packets = sniff(iface=args.iface, timeout=args.timeout)
+print(f"Capturing live traffic on interface(s): {iface} for {args.timeout} seconds")
+packets = sniff(iface=iface, timeout=args.timeout)
 
 # Group packets into flows
 flows = defaultdict(list)
@@ -248,8 +255,8 @@ for key, pkt_list in flows.items():
 
     # Partial row without aggregate features
     row = {
-        "src_ip": src,  ##
-        "dst_ip": dst,  ##
+        "src_ip": src,
+        "dst_ip": dst,
         "proto": proto,
         "state": state,
         "dur": dur,
@@ -339,8 +346,8 @@ for i, flow in enumerate(flows_data):
 # Prepare CSV
 with open(output_csv, "w", newline="") as csvfile:
     fieldnames = [
-        "src_ip",  ##
-        "dst_ip",  ##
+        "src_ip",
+        "dst_ip",
         "proto",
         "state",
         "dur",
