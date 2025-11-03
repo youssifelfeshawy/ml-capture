@@ -14,8 +14,8 @@ COPY label_encoders.pkl .
 COPY minmax_scaler.pkl .
 COPY attack_label_encoder.pkl .
 COPY feature_columns.pkl .
-COPY model_stage1.h5 .
-COPY model_stage2.h5 .
+COPY model_stage1.pkl .
+COPY model_stage2.pkl .
 COPY requirements.txt .
 COPY entrypoint.sh .
 
