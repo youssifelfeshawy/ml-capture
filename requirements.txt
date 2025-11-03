@@ -1,11 +1,9 @@
-numpy==1.26.4
-pandas
 scapy
+pandas
+numpy
+scikit-learn
 joblib
-tensorflow
-scikit-learn==1.3.0
 river
 imbalanced-learn
-scapy
-tqdm
-typing-extensions
+matplotlib
+seaborn
