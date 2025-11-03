@@ -3,35 +3,34 @@ import time
 import pandas as pd
 import numpy as np
 import joblib
-import tensorflow as tf
 
 # Load pre-trained artifacts (assume copied to /app)
 encoders = joblib.load('/app/label_encoders.pkl')  # Dict of LabelEncoders
 scaler = joblib.load('/app/minmax_scaler.pkl')  # MinMaxScaler
 le_attack = joblib.load('/app/attack_label_encoder.pkl')  # LabelEncoder for attacks
 final_columns = joblib.load('/app/feature_columns.pkl')  # List of expected features
-model_stage1 = tf.keras.models.load_model('/app/model_stage1.h5')
-model_stage2 = tf.keras.models.load_model('/app/model_stage2.h5')
+model_stage1 = joblib.load('/app/model_stage1.pkl')  # Assume scikit-learn model (e.g., RandomForestClassifier)
+model_stage2 = joblib.load('/app/model_stage2.pkl')  # Assume scikit-learn model (e.g., RandomForestClassifier)
 
 # Directory to monitor
 capture_dir = '/tmp/captures'
 
-# Hybrid prediction function (from provided code)
+# Hybrid prediction function (adapted without TensorFlow, assuming scikit-learn models)
 def hybrid_predict(new_data, model_stage1, model_stage2, le_attack):
     """
-    Hybrid prediction function using the two-stage ANN model.
+    Hybrid prediction function using the two-stage model (scikit-learn compatible).
 
     Parameters:
     - new_data: pd.DataFrame, preprocessed input data (same features as X, without labels)
-    - model_stage1: Trained Keras model for binary classification
-    - model_stage2: Trained Keras model for multi-class attack classification
+    - model_stage1: Trained scikit-learn model for binary classification
+    - model_stage2: Trained scikit-learn model for multi-class attack classification
     - le_attack: Fitted LabelEncoder for attack categories
 
     Returns:
     - list of str: Predicted labels ('Normal' or specific attack type)
     """
     # Stage 1: Predict binary (Normal vs. Attack)
-    pred_binary = (model_stage1.predict(new_data) > 0.5).astype(int).flatten()
+    pred_binary = model_stage1.predict(new_data)
 
     results = []
     for i, is_attack in enumerate(pred_binary):
@@ -39,7 +38,7 @@ def hybrid_predict(new_data, model_stage1, model_stage2, le_attack):
             results.append('Normal')
         else:
             # Stage 2: Predict attack type
-            pred_multi = np.argmax(model_stage2.predict(new_data.iloc[[i]]), axis=1)[0]
+            pred_multi = model_stage2.predict(new_data.iloc[[i]])[0]
             attack_type = le_attack.inverse_transform([pred_multi])[0]
             results.append(attack_type)
 
