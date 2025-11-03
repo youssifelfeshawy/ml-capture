@@ -14,4 +14,4 @@ COPY app.py .
 WORKDIR /app
 
 # Default command (can override with docker run args)
-CMD ["python", "../app.py", "--iface=all", "--timeout=60", "--output=/output/test.csv"]
+CMD ["python", "../app.py", "--iface=all", "--capture_duration=60"]
