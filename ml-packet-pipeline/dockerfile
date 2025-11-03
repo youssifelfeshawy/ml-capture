@@ -1,11 +1,8 @@
-# Use a base image with Python
+# Base image with Python
 FROM python:3.12-slim
 
-# Install dependencies for Scapy (libpcap, tcpdump for interfaces, etc.)
-RUN apt-get update && apt-get install -y \
-    libpcap-dev \
-    tcpdump \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies for Scapy (libpcap for packet capture)
+RUN apt-get update && apt-get install -y libpcap-dev && rm -rf /var/lib/apt/lists/*
 
 # Install Scapy
 RUN pip install scapy
@@ -16,6 +13,5 @@ COPY app.py .
 # Set working directory
 WORKDIR /app
 
-# Run the script with privileged mode (needed for packet capture)
-# Note: When running the container, use: docker run --privileged --net=host -v $(pwd):/output -it myimage python capture.py --iface=your_interface --timeout=60 --output=/output/output.csv
-CMD ["python", "capture.py"]
+# Default command (can override with docker run args)
+CMD ["python", "../app.py", "--iface=all", "--timeout=60", "--output=/output/test.csv"]
