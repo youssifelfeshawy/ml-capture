@@ -7,3 +7,5 @@ river
 imbalanced-learn
 matplotlib
 seaborn
+keras
+onnxruntime
