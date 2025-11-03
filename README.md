@@ -1,7 +1,3 @@
-Here’s a clean, professional, and easy-to-read **`README.md`** version of your Docker instructions:
-
----
-
 # 🐳 Packet Capture Tool
 
 This project provides a simple Dockerized setup for capturing network traffic and exporting it as a CSV file for analysis.
