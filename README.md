@@ -1,6 +1,6 @@
 # 🐳 Packet Capture Tool
 
-This project provides a simple Dockerized setup for capturing network traffic and exporting it as a CSV file for analysis.
+This project provides a simple **Dockerized setup** for continuously capturing network traffic and exporting it as CSV files for analysis using **Scapy**.
 
 ---
 
@@ -21,43 +21,56 @@ This will create a Docker image named **`my-capture-image`**.
 Use the following command to run the container and start capturing packets:
 
 ```bash
-sudo docker run --net=host --cap-add=NET_RAW -v $HOME/Downloads:/output my-capture-image \
-python capture.py --iface=all --timeout=60 --output=/output/my_custom_capture.csv
+sudo docker run --net=host --cap-add=NET_RAW -v /tmp/captures:/tmp/captures my-capture-image
 ```
+
+The container will automatically execute the **`capture.py`** script, continuously capturing live traffic and generating timestamped CSV files inside `/tmp/captures`.
+
+---
 
 ### 🔍 Command Breakdown
 
-| Option                                   | Description                                                                                      |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `--net=host`                             | Grants the container direct access to the host’s network interfaces.                             |
-| `--cap-add=NET_RAW`                      | Allows the container to capture raw network packets.                                             |
-| `-v $HOME/Downloads:/output`             | Mounts your local **Downloads** directory into the container’s `/output` folder to save results. |
-| `python capture.py`                      | Runs the Python script responsible for packet capture.                                           |
-| `--iface=all`                            | Captures packets on all available network interfaces.                                            |
-| `--timeout=60`                           | Capture duration in seconds (you can change this value).                                         |
-| `--output=/output/my_custom_capture.csv` | Path and name of the output CSV file.                                                            |
+| Option                           | Description                                                                     |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| `--net=host`                     | Grants the container direct access to the host’s network interfaces.            |
+| `--cap-add=NET_RAW`              | Allows the container to capture raw network packets.                            |
+| `-v /tmp/captures:/tmp/captures` | Mounts the host’s `/tmp/captures` directory into the container to save results. |
+| `my-capture-image`               | The Docker image that contains the capture script and dependencies.             |
 
 ---
 
 ## 🗂 Output
 
-After the capture completes, you’ll find the output file in your **Downloads** directory:
+After the capture completes, you’ll find the generated CSV files inside:
 
 ```
-~/Downloads/my_custom_capture.csv
+/tmp/captures/
 ```
 
-You can open it using Excel, Python (pandas), or any data analysis tool.
+Each file is automatically named based on the timestamp of the capture (e.g., `capture_20251103_153045.csv`).
+
+You can open them using:
+
+* Excel or LibreOffice Calc
+* Python libraries like **pandas**
+* Any data analysis tool that supports CSV
 
 ---
 
 ## ⚙️ Customization
 
-You can modify the command parameters:
+You can modify capture parameters directly in the command:
 
-* Change `--timeout` to control capture duration.
+* Change `--capture_duration` to control capture duration (default: 60 seconds).
 * Replace `--iface=all` with a specific interface name (e.g., `eth0`).
-* Update the output file path or name.
+* Adjust the output directory if you want to store captures elsewhere.
+
+Example:
+
+```bash
+sudo docker run --net=host --cap-add=NET_RAW -v /tmp/captures:/tmp/captures my-capture-image \
+python capture.py --iface=eth0 --capture_duration=120 --output_dir=/tmp/captures
+```
 
 ---
 
@@ -75,3 +88,10 @@ To remove the image (optional):
 ```bash
 sudo docker rmi my-capture-image
 ```
+
+---
+
+✅ **Notes:**
+
+* The `/tmp/captures` folder will be **deleted after every reboot**, so save your CSVs elsewhere if needed.
+* Make sure you run Docker with **sudo** or root privileges to enable packet capturing.
