@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--iface",
     type=str,
-    default="eth0",
+    default="all",
     help="Network interface to capture on (default: eth0). Use 'all' to capture on all interfaces.",
 )
 parser.add_argument(
@@ -403,3 +403,4 @@ while True:
         print(f"Error during capture/processing: {e}")
         # Continue looping even on error
         time.sleep(5)  # Backoff before retry
+
