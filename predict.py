@@ -23,6 +23,8 @@ def preprocess(new_data_df):
     for col in cat_cols:
         if col in new_data_df.columns and col in encoders:
             le = encoders[col]
+            # Replace unseen categories with the first known class (which encodes to 0)
+            new_data_df[col] = new_data_df[col].astype(str).apply(lambda x: x if x in le.classes_ else le.classes_[0])
             new_data_df[col] = le.transform(new_data_df[col])
     # Normalize using loaded scaler
     # Ensure columns match training X.columns
