@@ -29,7 +29,7 @@ def preprocess(new_data_df):
     # Normalize using loaded scaler
     # Ensure columns match training X.columns
     expected_columns = scaler.feature_names_in_
-    new_data_df = new_data_df.reindex(columns=expected_columns)
+    new_data_df = new_data_df.reindex(columns=expected_columns, fill_value=0)  # Fill missing columns with 0 or appropriate value
     new_data_scaled = pd.DataFrame(scaler.transform(new_data_df), columns=new_data_df.columns)
   
     return new_data_scaled
