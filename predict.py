@@ -71,18 +71,10 @@ if __name__ == "__main__":
             try:
                 df = pd.read_csv(csv_path)
                 
-                # Filter out rows with unseen values in any categorical column
-                valid_mask = pd.Series(True, index=df.index)
-                for col in cat_cols:
-                    if col in df.columns and col in encoders:
-                        le = encoders[col]
-                        valid_mask &= df[col].isin(le.classes_)
-                df = df[valid_mask]
-                
                 if df.empty:
-                    print("No valid rows to process after filtering unseen values.")
+                    print("Empty DataFrame after loading.")
                 else:
-                    # Preprocess and predict
+                    # Preprocess and predict (unseen handled in preprocess)
                     df_scaled = preprocess(df)
                     predictions = hybrid_predict(df_scaled, model_stage1, model_stage2, le_attack)
                     
